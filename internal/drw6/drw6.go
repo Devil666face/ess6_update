@@ -23,40 +23,40 @@ var (
 	idBackup   = filepath.Join(repository, "10-drwbases", "id_backup")
 )
 
-type loader struct {
+type Drw6 struct {
 	loadcmd string
 }
 
-func New() *loader {
-	return &loader{
+func New() *Drw6 {
+	return &Drw6{
 		loadcmd: cmd,
 	}
 }
 
-func (l *loader) Create() error {
-	if err := l.download(); err != nil {
+func (d *Drw6) Create() error {
+	if err := d.download(); err != nil {
 		return fmt.Errorf("failed download: %w", err)
 	}
-	if err := l.copybases(); err != nil {
+	if err := d.copybases(); err != nil {
 		return fmt.Errorf("failed copy vdb files: %w", err)
 	}
-	if err := l.timestemp(); err != nil {
+	if err := d.timestemp(); err != nil {
 		return fmt.Errorf("failed write timestemp: %w", err)
 	}
-	if err := l.zip(); err != nil {
+	if err := d.zip(); err != nil {
 		return fmt.Errorf("failed zip: %w", err)
 	}
 	return nil
 }
 
-func (l *loader) download() error {
-	if _, err := shell.Command(l.loadcmd); err != nil {
+func (d *Drw6) download() error {
+	if _, err := shell.Command(d.loadcmd); err != nil {
 		return fmt.Errorf("failed to load bases: %w", err)
 	}
 	return nil
 }
 
-func (l *loader) copybases() error {
+func (d *Drw6) copybases() error {
 	var files []string
 
 	entries, err := os.ReadDir(bases)
@@ -85,7 +85,7 @@ func (l *loader) copybases() error {
 	return nil
 }
 
-func (l *loader) timestemp() error {
+func (d *Drw6) timestemp() error {
 	time, err := os.ReadFile(timestamp)
 	if err != nil {
 		return fmt.Errorf("failed to read timestamp from %s: %w", timestamp, err)
@@ -97,7 +97,7 @@ func (l *loader) timestemp() error {
 	return nil
 }
 
-func (l *loader) zip() error {
+func (d *Drw6) zip() error {
 	if err := fileutils.ZipDir("DRW_ESS6.zip", repository); err != nil {
 		return fmt.Errorf("failed to create bases zip: %w", err)
 	}

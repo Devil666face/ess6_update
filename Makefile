@@ -31,6 +31,10 @@ build-windows: ## Build for windows
 	CGO_ENABLED=0 GOOS=windows GOARCH=$(GOARCH) \
 	  $(GOBIN) build -ldflags="$(WINDOWS_LDFLAGS)" -trimpath -gcflags=$(GCFLAGS) -asmflags=$(ASMFLAGS) \
 	  -o $(PROJECT_BIN)/$(APP).exe cmd/$(APP)/main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=$(GOARCH) \
+	  $(GOBIN) build -ldflags="$(LINUX_LDFLAGS)" -trimpath -gcflags=$(GCFLAGS) -asmflags=$(ASMFLAGS) \
+	  -o $(PROJECT_BIN)/$(APP) cmd/$(APP)/main.go
+
 
 	
 .crop:
@@ -42,4 +46,17 @@ dev:
 
 help:
 	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+cert: ## Make cert for sign binaries
+	openssl req -newkey rsa:2048 -nodes -keyout server.key -out server.csr -subj "/CN=your.hostname.here"
+	echo "subjectAltName = IP:0.0.0.0,IP:127.0.0.1,IP:172.17.0.1,IP:172.252.212.8,IP:45.120.177.178,IP:88.151.117.196" > extfile.cnf
+	openssl x509 -req -sha256 -days 365 -in server.csr -signkey server.key -out server.crt -extfile extfile.cnf
+
+	cp server.key cmd/drw6
+	cp server.crt cmd/drw6
+
+	rm server.csr \
+	   server.key \
+	   server.crt \
+	   extfile.cnf
 
