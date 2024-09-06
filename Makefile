@@ -14,10 +14,13 @@ build: build-windows .crop ## Build all
 
 release: build-windows .crop zip ## Build release
 
+deliv: release
+	cp $(PROJECT_BIN)/$(APP).zip ~/dev/windows/ess6/shared
+
 zip:
 	rm -rf repository/10-drwbases/common/*
 	cp $(PROJECT_BIN)/$(APP).exe .
-	tar -cvzf $(PROJECT_BIN)/$(APP).tar.gz $(APP).exe repository
+	zip -rq9 $(PROJECT_BIN)/$(APP).zip $(APP).exe repository
 	rm $(APP).exe
 
 docker: ## Build with docker
