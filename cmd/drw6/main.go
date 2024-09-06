@@ -6,11 +6,28 @@ import (
 	"os"
 	"path/filepath"
 
+	_ "embed"
+
 	"drw6/pkg/fileutils"
 	"drw6/pkg/shell"
 
 	"golang.org/x/sync/errgroup"
 )
+
+const (
+	DrwUpdater = "drwupdater.exe"
+	UpdateDrl  = "update.drl"
+	Drweb32    = "drweb32.ini"
+)
+
+//go:embed drwupdater.exe
+var DrwUpdaterBin []byte
+
+//go:embed update.drl
+var UpdateDrlBin []byte
+
+//go:embed drweb32.ini
+var Drweb32Bin []byte
 
 var (
 	bases      = filepath.Join("bases")
@@ -25,18 +42,25 @@ type Loader struct {
 	LoadCmd string
 }
 
-func New() *Loader {
+func New() (*Loader, error) {
+	if err := fileutils.WriteBytes(DrwUpdater, DrwUpdaterBin); err != nil {
+		return nil, err
+	}
+	if err := fileutils.WriteBytes(UpdateDrl, UpdateDrlBin); err != nil {
+		return nil, err
+	}
+	if err := fileutils.WriteBytes(Drweb32, Drweb32Bin); err != nil {
+		return nil, err
+	}
 	return &Loader{
 		LoadCmd: cmd,
-	}
+	}, nil
 }
 
 func (l *Loader) Load() error {
-	out, err := shell.Command(l.LoadCmd)
-	if err != nil {
+	if _, err := shell.Command(l.LoadCmd); err != nil {
 		return fmt.Errorf("failed to load bases: %w", err)
 	}
-	fmt.Println(out)
 	return nil
 }
 
@@ -75,7 +99,7 @@ func (l *Loader) WriteTimestemp() error {
 		return fmt.Errorf("failed to read timestamp from %s: %w", timestamp, err)
 	}
 
-	if err := fileutils.WriteFile(idBackup, fmt.Sprintf("%s", time)); err != nil {
+	if err := fileutils.WriteString(idBackup, fmt.Sprintf("%s", time)); err != nil {
 		return fmt.Errorf("failed to write timestemp %s: %w", idBackup, err)
 	}
 	return nil
@@ -89,18 +113,20 @@ func (l *Loader) CreateZip() error {
 }
 
 func main() {
-	_loader := New()
-
-	if err := _loader.Load(); err != nil {
+	loader, err := New()
+	if err != nil {
 		log.Fatal(err)
 	}
-	if err := _loader.CopyBasesFiles(); err != nil {
+	if err := loader.Load(); err != nil {
 		log.Fatal(err)
 	}
-	if err := _loader.WriteTimestemp(); err != nil {
+	if err := loader.CopyBasesFiles(); err != nil {
 		log.Fatal(err)
 	}
-	if err := _loader.CreateZip(); err != nil {
+	if err := loader.WriteTimestemp(); err != nil {
+		log.Fatal(err)
+	}
+	if err := loader.CreateZip(); err != nil {
 		log.Fatal(err)
 	}
 }
