@@ -1,13 +1,17 @@
 package drw6
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
 	"drw6/pkg/fileutils"
 	"drw6/pkg/shell"
 
+	"github.com/reugn/go-quartz/job"
+	"github.com/reugn/go-quartz/quartz"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -34,18 +38,53 @@ var (
 type Drw6 struct {
 	loadcmd string
 	State   *LoadState
+	sched   quartz.Scheduler
 }
 
-func New() *Drw6 {
-	return &Drw6{
+func New(trigger string) (*Drw6, error) {
+	cron, err := quartz.NewCronTrigger(trigger)
+	if err != nil {
+		return nil, fmt.Errorf("error parse cron trigger: %w", err)
+	}
+
+	_drw6 := Drw6{
 		loadcmd: cmd,
 		State:   &LoadState{},
+		sched:   quartz.NewStdScheduler(),
+	}
+
+	_drw6.sched.Start(context.Background())
+	function := job.NewFunctionJob(
+		func(_ context.Context) (bool, error) {
+			if _drw6.State.IsLoad() {
+				return false, fmt.Errorf("already in loading")
+			}
+			if err := _drw6.Update(); err != nil {
+				return false, err
+			}
+			return true, nil
+		},
+	)
+	_drw6.sched.ScheduleJob(
+		quartz.NewJobDetail(
+			function,
+			quartz.NewJobKey("update"),
+		),
+		cron,
+	)
+	return &_drw6, nil
+}
+
+func (d *Drw6) UpdateMust() {
+	if err := d.Update(); err != nil {
+		log.Print(err)
 	}
 }
 
-func (d *Drw6) Create() {
+func (d *Drw6) Update() error {
 	d.State.Start()
 	defer d.State.Stop()
+
 	if err := func() error {
 		if err := d.download(); err != nil {
 			return fmt.Errorf("failed download: %w", err)
@@ -62,8 +101,11 @@ func (d *Drw6) Create() {
 		return nil
 	}(); err != nil {
 		d.State.SetError(err)
+		d.State.SetMessage("")
+		return err
 	}
 	d.State.SetMessage(successmess)
+	return nil
 }
 
 func (d *Drw6) download() error {

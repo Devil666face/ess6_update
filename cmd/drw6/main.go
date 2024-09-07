@@ -56,8 +56,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// log.Printf("parsed config: %v", _config)
 
-	_drw6 := drw6.New()
+	_drw6, err := drw6.New(
+		_config.CronTrigger,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	_web, err := web.New(
 		_tlsconfig,

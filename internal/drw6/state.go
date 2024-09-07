@@ -9,7 +9,11 @@ type LoadState struct {
 	err     error
 }
 
-func (l *LoadState) Start()              { l.m.Lock(); defer l.m.Unlock(); l.isload, l.err = true, nil }
+func (l *LoadState) Start() {
+	l.m.Lock()
+	defer l.m.Unlock()
+	l.isload, l.err, l.message = true, nil, ""
+}
 func (l *LoadState) Stop()               { l.m.Lock(); defer l.m.Unlock(); l.isload = false }
 func (l *LoadState) SetMessage(m string) { l.m.Lock(); defer l.m.Unlock(); l.message = m }
 func (l *LoadState) SetError(err error)  { l.m.Lock(); defer l.m.Unlock(); l.err = err }

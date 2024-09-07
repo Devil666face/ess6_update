@@ -11,7 +11,7 @@ func Download(h *Handler) error {
 			},
 		)
 	}
-	go h.drw6.Create()
+	go h.drw6.UpdateMust()
 	return h.ctx.JSON(
 		JsonMessage{
 			Code:    fiber.StatusOK,

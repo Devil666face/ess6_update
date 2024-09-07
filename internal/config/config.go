@@ -16,6 +16,7 @@ type Config struct {
 	PortHTTP      uint   `env:"PORT_HTTP" env-default:"8000"`
 	PortHTTPS     uint   `env:"PORT_HTTPS" env-default:"4443"`
 	AllowHost     string `env:"ALLOW_HOST" env-default:"localhost"`
+	CronTrigger   string `env:"CRON_TRIGGER" env-default:"0 0,12 * * * *"`
 	ConnectHTTP   string
 	HTTPSRedirect string
 	ConnectHTTPS  string

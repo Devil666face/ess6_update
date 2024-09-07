@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/gofiber/fiber/v3 v3.0.0-beta.3
 	github.com/ilyakaznacheev/cleanenv v1.5.0
+	github.com/reugn/go-quartz v0.12.0
 	golang.org/x/sync v0.8.0
 )
 
