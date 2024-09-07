@@ -1,0 +1,23 @@
+version: "3"
+services:
+  windows:
+    image: dockurr/windows
+    container_name: win7
+    devices:
+      - /dev/kvm
+    cap_add:
+      - NET_ADMIN
+    stop_grace_period: 2m
+    environment:
+      VERSION: "win7"
+      RAM_SIZE: "4G"
+      CPU_CORES: "4"
+      DISK_SIZE: "32G"
+    volumes:
+      - ./storage:/storage
+      - ./shared:/shared
+    ports:
+      - 80:8000
+      - 443:4443
+    # network_mode: "bridge"
+

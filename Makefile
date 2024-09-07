@@ -8,7 +8,7 @@ LINUX_LDFLAGS = -extldflags '-static' -w -s -buildid=
 WINDOWS_LDFLAGS = -extldflags '-static' -w -s -buildid=
 GCFLAGS = "all=-trimpath=$(shell pwd) -dwarf=false -l"
 ASMFLAGS = "all=-trimpath=$(shell pwd)"
-APP = drw6
+APP = ess6_update
 
 build: build-bins .crop ## Build all
 
