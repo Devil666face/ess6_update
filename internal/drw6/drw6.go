@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"drw6/pkg/fileutils"
 	"drw6/pkg/shell"
@@ -89,6 +90,7 @@ func (d *Drw6) Update() error {
 		if err := d.download(); err != nil {
 			return fmt.Errorf("failed download: %w", err)
 		}
+		time.Sleep(5 * time.Second)
 		if err := d.copybases(); err != nil {
 			return fmt.Errorf("failed copy vdb files: %w", err)
 		}
