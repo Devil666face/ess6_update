@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/ilyakaznacheev/cleanenv"
 )
@@ -22,7 +23,8 @@ type Config struct {
 
 func New() (*Config, error) {
 	cfg := Config{}
-	if err := cleanenv.ReadConfig(".env", &cfg); err != nil {
+	if err := cleanenv.ReadConfig("default.env", &cfg); err != nil {
+		log.Println(err)
 		if err := cleanenv.ReadEnv(&cfg); err != nil {
 			return nil, fmt.Errorf("env variable not found: %w", err)
 		}

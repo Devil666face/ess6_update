@@ -34,6 +34,7 @@ type Web struct {
 func New(
 	_tlsconfig *tls.Config,
 	_config *config.Config,
+	_drw6 *drw6.Drw6,
 ) (*Web, error) {
 	w := Web{
 		fiber: fiber.New(
@@ -43,9 +44,11 @@ func New(
 		),
 		tlsconfig: _tlsconfig,
 		config:    _config,
+		drw6:      _drw6,
 	}
 	w.fiber.Use(logger.New())
 	w.fiber.Use(recover.New())
+	w.fiber.Use(w.wrap(handlers.AllowHost))
 	w.fiber.Use(helmet.New(helmet.Config{
 		XSSProtection:  "1",
 		ReferrerPolicy: "same-origin",
@@ -58,11 +61,30 @@ func New(
 	if err != nil {
 		return nil, fmt.Errorf("media directory not create of found: %w", err)
 	}
-	w.fiber.Get("/*", static.New("", static.Config{
-		FS:     os.DirFS(path),
-		Browse: true,
+	w.fiber.Get("/download", w.wrap(handlers.Download))
+	w.fiber.Get("/status", w.wrap(handlers.Status))
+
+	files := w.fiber.Group("/media")
+	files.Use(w.wrap(handlers.FileList))
+	files.Get("/*", static.New("", static.Config{
+		FS:        os.DirFS(path),
+		Browse:    false,
+		ByteRange: true,
+		Download:  true,
 	}))
 	return &w, nil
+}
+
+func (w *Web) wrap(handler func(*handlers.Handler) error) func(fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
+		return handler(
+			handlers.New(
+				c,
+				w.drw6,
+				w.config.AllowHost,
+			),
+		)
+	}
 }
 
 func (w *Web) Listen() error {

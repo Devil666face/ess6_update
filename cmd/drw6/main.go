@@ -6,6 +6,7 @@ import (
 	_ "embed"
 
 	"drw6/internal/config"
+	"drw6/internal/drw6"
 	"drw6/internal/web"
 	"drw6/pkg/fileutils"
 	"drw6/pkg/netutils"
@@ -43,7 +44,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	tlsconfig, err := netutils.LoadTlsCreds(
+	_tlsconfig, err := netutils.LoadTlsCreds(
 		TLSServerCert,
 		TLSServerKey,
 	)
@@ -51,20 +52,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	config, err := config.New()
+	_config, err := config.New()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	web, err := web.New(
-		tlsconfig,
-		config,
+	_drw6 := drw6.New()
+
+	_web, err := web.New(
+		_tlsconfig,
+		_config,
+		_drw6,
 	)
-	if err := web.Listen(); err != nil {
+	if err := _web.Listen(); err != nil {
 		log.Fatal(err)
 	}
-	// _drw6 := drw6.New()
-	// if err := _drw6.Create(); err != nil {
-	// 	log.Fatal(err)
-	// }
 }

@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 PROJECT_BIN = $(shell pwd)/bin
 $(shell [ -f bin ] || mkdir -p $(PROJECT_BIN))
-GOBIN = /home/a.kalinkin/dev/go/go/bin/go
+GOBIN = go
 PATH := $(PROJECT_BIN):$(PATH)
 GOARCH = amd64
 LINUX_LDFLAGS = -extldflags '-static' -w -s -buildid=
@@ -10,9 +10,9 @@ GCFLAGS = "all=-trimpath=$(shell pwd) -dwarf=false -l"
 ASMFLAGS = "all=-trimpath=$(shell pwd)"
 APP = drw6
 
-build: build-windows .crop ## Build all
+build: build-bins .crop ## Build all
 
-release: build-windows .crop zip ## Build release
+release: build-bins .crop zip ## Build release
 
 deliv: release
 	cp $(PROJECT_BIN)/$(APP).zip ~/dev/windows/ess6/shared
@@ -27,7 +27,7 @@ docker: ## Build with docker
 	docker compose up --build --force-recreate || docker-compose up --build --force-recreate
 
 
-build-windows: ## Build for windows
+build-bins: ## Build for windows
 	CGO_ENABLED=0 GOOS=windows GOARCH=$(GOARCH) \
 	  $(GOBIN) build -ldflags="$(WINDOWS_LDFLAGS)" -trimpath -gcflags=$(GCFLAGS) -asmflags=$(ASMFLAGS) \
 	  -o $(PROJECT_BIN)/$(APP).exe cmd/$(APP)/main.go
@@ -38,6 +38,8 @@ build-windows: ## Build for windows
 
 	
 .crop:
+	strip $(PROJECT_BIN)/$(APP)
+	objcopy --strip-unneeded $(PROJECT_BIN)/$(APP)
 	strip $(PROJECT_BIN)/$(APP).exe
 	objcopy --strip-unneeded $(PROJECT_BIN)/$(APP).exe
 
