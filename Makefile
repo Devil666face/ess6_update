@@ -20,7 +20,7 @@ deliv: release
 zip:
 	rm -rf repository/10-drwbases/common/*
 	cp $(PROJECT_BIN)/$(APP).exe .
-	zip -rq9 $(PROJECT_BIN)/$(APP).zip $(APP).exe repository
+	zip -rq9 $(PROJECT_BIN)/$(APP).zip $(APP).exe repository default.env
 	rm $(APP).exe
 
 docker: ## Build with docker
